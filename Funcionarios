@@ -13,12 +13,12 @@ import '../custom.css';
 import axios from 'axios';
 import { BASE_URL } from '../config/axios';
 
-function CadastroProfessor() {
+function CadastroFuncionario() {
   const { idParam } = useParams();
 
   const navigate = useNavigate();
 
-  const baseURL = `${BASE_URL}/professores`;
+  const baseURL = `${BASE_URL}/funcionarios`;
 
   const [id, setId] = useState('');
   const [nome, setNome] = useState('');
@@ -53,8 +53,8 @@ function CadastroProfessor() {
           headers: { 'Content-Type': 'application/json' },
         })
         .then(function (response) {
-          mensagemSucesso(`Professor ${nome} cadastrado com sucesso!`);
-          navigate(`/listagem-professores`);
+          mensagemSucesso(`Funcionario ${nome} cadastrado com sucesso!`);
+          navigate(`/listagem-funcionarios`);
         })
         .catch(function (error) {
           mensagemErro(error.response.data);
@@ -65,8 +65,8 @@ function CadastroProfessor() {
           headers: { 'Content-Type': 'application/json' },
         })
         .then(function (response) {
-          mensagemSucesso(`Professor ${nome} alterado com sucesso!`);
-          navigate(`/listagem-professores`);
+          mensagemSucesso(`Funcionario ${nome} alterado com sucesso!`);
+          navigate(`/listagem-funcionarios`);
         })
         .catch(function (error) {
           mensagemErro(error.response.data);
@@ -93,7 +93,7 @@ function CadastroProfessor() {
 
   return (
     <div className='container'>
-      <Card title='Cadastro de Professor'>
+      <Card title='Cadastro de Funcionario'>
         <div className='row'>
           <div className='col-lg-12'>
             <div className='bs-component'>
@@ -162,4 +162,4 @@ function CadastroProfessor() {
   );
 }
 
-export default CadastroProfessor;
+export default CadastroFuncionario;
