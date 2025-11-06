@@ -1,256 +1,236 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-
 import Stack from '@mui/material/Stack';
 
 import Card from '../components/card';
 import FormGroup from '../components/form-group';
-
 import { mensagemSucesso, mensagemErro } from '../components/toastr';
-
 import '../custom.css';
 
 import axios from 'axios';
 import { BASE_URL } from '../config/axios';
 
-
 function CadastroQuarto() {
- const { idParam } = useParams();
+  const { idParam } = useParams();
+  const navigate = useNavigate();
 
- const navigate = useNavigate();
+  const baseURL = `${BASE_URL}/quartos`;
 
- 
-const baseURL = `${BASE_URL}/quartos`;
+  const [id, setId] = useState('');
+  const [numero, setNumero] = useState('');
+  const [tipo, setTipo] = useState('');
+  const [capacidade, setCapacidade] = useState(1);
+  const [precoDiaria, setPrecoDiaria] = useState(0.0);
+  const [descricao, setDescricao] = useState('');
+  const [status, setStatus] = useState('Disponível');
 
- 
- const [id, setId] = useState('');
- const [numero, setNumero] = useState(''); 
- const [tipo, setTipo] = useState(''); 
- const [capacidade, setCapacidade] = useState(1); 
- const [precoDiaria, setPrecoDiaria] = useState(0.0); 
- const [descricao, setDescricao] = useState(''); 
- const [status, setStatus] = useState('Disponível'); 
- 
+  const [dados, setDados] = React.useState(null);
 
+  const tiposQuarto = [
+    { label: 'Selecione...', value: '' },
+    { label: 'Solteiro', value: 'Solteiro' },
+    { label: 'Casal', value: 'Casal' },
+    { label: 'Luxo', value: 'Luxo' },
+    { label: 'Suíte', value: 'Suíte' },
+  ];
 
- const [dados, setDados] = React.useState(null); 
+  const statusQuarto = [
+    { label: 'Disponível', value: 'Disponível' },
+    { label: 'Ocupado', value: 'Ocupado' },
+    { label: 'Manutenção', value: 'Manutenção' },
+  ];
 
- 
- const tiposQuarto = [
- { label: 'Selecione...', value: '' },
- { label: 'Solteiro', value: 'Solteiro' },
- { label: 'Casal', value: 'Casal' },
- { label: 'Luxo', value: 'Luxo' },
- { label: 'Suíte', value: 'Suíte' },
- ];
+  function inicializar() {
+    if (idParam == null) {
+      setId('');
+      setNumero('');
+      setTipo('');
+      setCapacidade(1);
+      setPrecoDiaria(0.0);
+      setDescricao('');
+      setStatus('Disponível');
+    } else if (dados) {
+      setId(dados.id);
+      setNumero(dados.numero);
+      setTipo(dados.tipo);
+      setCapacidade(dados.capacidade);
+      setPrecoDiaria(dados.precoDiaria);
+      setDescricao(dados.descricao);
+      setStatus(dados.status);
+    }
+  }
 
+  async function salvar() {
+    let data = {
+      id,
+      numero,
+      tipo,
+      capacidade: Number(capacidade),
+      precoDiaria: Number(precoDiaria),
+      descricao,
+      status,
+    };
 
- const statusQuarto = [
- { label: 'Disponível', value: 'Disponível' },
- { label: 'Ocupado', value: 'Ocupado' },
- { label: 'Manutenção', value: 'Manutenção' },
- ];
+    data = JSON.stringify(data);
 
- function inicializar() {
-  if (idParam == null) {
-   setId('');
-   setNumero('');
-   setTipo('');
-   setCapacidade(1);
-   setPrecoDiaria(0.0);
-   setDescricao('');
-   setStatus('Disponível');
+    if (idParam == null) {
+      await axios
+        .post(baseURL, data, {
+          headers: { 'Content-Type': 'application/json' },
+        })
+        .then(() => {
+          mensagemSucesso(`Quarto ${numero} cadastrado com sucesso!`);
+          navigate(`/listagem-quartos`);
+        })
+        .catch((error) => {
+          mensagemErro(error.response.data);
+        });
+    } else {
+      await axios
+        .put(`${baseURL}/${idParam}`, data, {
+          headers: { 'Content-Type': 'application/json' },
+        })
+        .then(() => {
+          mensagemSucesso(`Quarto ${numero} alterado com sucesso!`);
+          navigate(`/listagem-quartos`);
+        })
+        .catch((error) => {
+          mensagemErro(error.response.data);
+        });
+    }
+  }
 
-  } else if (dados) {
+  async function buscar() {
+    if (idParam) {
+      await axios.get(`${baseURL}/${idParam}`).then((response) => {
+        setDados(response.data);
+      });
+    } else {
+      setDados({});
+    }
+  }
 
-   setId(dados.id);
-   setNumero(dados.numero);
-   setTipo(dados.tipo);
-   setCapacidade(dados.capacidade);
-   setPrecoDiaria(dados.precoDiaria);
-   setDescricao(dados.descricao);
-   setStatus(dados.status);
+  useEffect(() => {
+    buscar();
+  }, [idParam]);
 
- }
- }
+  useEffect(() => {
+    if (dados) {
+      inicializar();
+    }
+  }, [dados]);
 
- async function salvar() {
- let data = {
- id,
- numero,
- tipo,
- capacidade: Number(capacidade),
- precoDiaria: Number(precoDiaria), 
- descricao,
- status,
+  if (!dados) return null;
 
- };
- data = JSON.stringify(data);
- 
- if (idParam == null) {
-   await axios // <-- CORREÇÃO: Adicionado 'await axios'
-     .post(baseURL, data, {
-       headers: { 'Content-Type': 'application/json' },
-     })
-     .then(function (response) {
-       mensagemSucesso(`Quarto ${numero} cadastrado com sucesso!`);
-       navigate(`/listagem-quartos`);
-     })
-     .catch(function (error) {
-       mensagemErro(error.response.data);
-     });
- } else {
-   await axios
-     .put(`${baseURL}/${idParam}`, data, {
-       headers: { 'Content-Type': 'application/json' },
-     })
-     .then(function (response) {
+  return (
+    <div className="container">
+      <Card title="Cadastro de Quarto">
+        <div className="row">
+          <div className="col-lg-12">
+            <div className="bs-component">
+              {/* Campo Número do Quarto */}
+              <FormGroup label="Número: *" htmlFor="inputNumero">
+                <input
+                  type="text"
+                  id="inputNumero"
+                  value={numero}
+                  className="form-control"
+                  name="numero"
+                  onChange={(e) => setNumero(e.target.value)}
+                />
+              </FormGroup>
 
-       mensagemSucesso(`Quarto ${numero} alterado com sucesso!`);
-       navigate(`/listagem-quartos`);
-     })
-     .catch(function (error) {
-       mensagemErro(error.response.data);
-     });
- }
- }
+              {/* Campo Tipo do Quarto */}
+              <FormGroup label="Tipo: *" htmlFor="selectTipo">
+                <select
+                  className="form-select"
+                  id="selectTipo"
+                  name="tipo"
+                  value={tipo}
+                  onChange={(e) => setTipo(e.target.value)}
+                >
+                  {tiposQuarto.map((op) => (
+                    <option key={op.value} value={op.value}>
+                      {op.label}
+                    </option>
+                  ))}
+                </select>
+              </FormGroup>
 
-async function buscar() {
- if (idParam) {
-   await axios.get(`${baseURL}/${idParam}`).then((response) => {
-     setDados(response.data);
-   });
- } else {
-   setDados({}); 
- }
- }
- 
- useEffect(() => {
-   buscar(); 
- }, [idParam]); 
+              {/* Campo Capacidade */}
+              <FormGroup label="Capacidade (Pessoas): *" htmlFor="inputCapacidade">
+                <input
+                  type="number"
+                  id="inputCapacidade"
+                  value={capacidade}
+                  className="form-control"
+                  name="capacidade"
+                  onChange={(e) => setCapacidade(e.target.value)}
+                />
+              </FormGroup>
 
+              {/* Campo Preço Diária */}
+              <FormGroup label="Preço Diária: *" htmlFor="inputPrecoDiaria">
+                <input
+                  type="number"
+                  id="inputPrecoDiaria"
+                  value={precoDiaria}
+                  className="form-control"
+                  name="precoDiaria"
+                  onChange={(e) => setPrecoDiaria(e.target.value)}
+                />
+              </FormGroup>
 
- useEffect(() => {
-   if (dados) {
-     inicializar();
-   }
- }, [dados]);
+              {/* Campo Descrição */}
+              <FormGroup label="Descrição:" htmlFor="inputDescricao">
+                <textarea
+                  id="inputDescricao"
+                  value={descricao}
+                  className="form-control"
+                  name="descricao"
+                  onChange={(e) => setDescricao(e.target.value)}
+                />
+              </FormGroup>
 
+              {/* Campo Status */}
+              <FormGroup label="Status:" htmlFor="selectStatus">
+                <select
+                  className="form-select"
+                  id="selectStatus"
+                  name="status"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                >
+                  {statusQuarto.map((op) => (
+                    <option key={op.value} value={op.value}>
+                      {op.label}
+                    </option>
+                  ))}
+                </select>
+              </FormGroup>
 
-if (!dados) return null;
- 
-
- return (
- <div className='container'>
-   <Card title='Cadastro de Quarto'>
-     <div className='row'>
-       <div className='col-lg-12'>
-         <div className='bs-component'>
-           {/* Campo Número do Quarto (substitui o Nome do Curso) */}
-           <FormGroup label='Número: *' htmlFor='inputNumero'>
-             <input
-               type='text'
-               id='inputNumero'
-               value={numero}
-               className='form-control'
-               name='numero'
-               onChange={(e) => setNumero(e.target.value)}
-             />
-           </FormGroup>
-
-           {/* Campo Tipo do Quarto */}
-           <FormGroup label='Tipo: *' htmlFor='selectTipo'>
-             <select
-               className='form-select'
-               id='selectTipo'
-               name='tipo'
-               value={tipo}
-               onChange={(e) => setTipo(e.target.value)}
-             >
-               {tiposQuarto.map((op) => (
-                 <option key={op.value} value={op.value}>
-                   {op.label}
-                 </option>
-               ))}
-             </select>
-           </FormGroup>
-
-           {/* Campo Capacidade */}
-           <FormGroup label='Capacidade (Pessoas): *' htmlFor='inputCapacidade'>
-             <input
-               type='number'
-               id='inputCapacidade'
-               value={capacidade}
-               className='form-control'
-               name='capacidade'
-               onChange={(e) => setCapacidade(e.target.value)}
-             />
-           </FormGroup>
-
-           {/* Campo Preço Diária */}
-           <FormGroup label='Preço Diária: *' htmlFor='inputPrecoDiaria'>
-             <input
-               type='number'
-               id='inputPrecoDiaria'
-               value={precoDiaria}
-               className='form-control'
-               name='precoDiaria'
-               onChange={(e) => setPrecoDiaria(e.target.value)}
-             />
-           </FormGroup>
-
-           {/* Campo Descrição */}
-           <FormGroup label='Descrição:' htmlFor='inputDescricao'>
-             <textarea
-               id='inputDescricao'
-               value={descricao}
-               className='form-control'
-               name='descricao'
-               onChange={(e) => setDescricao(e.target.value)}
-             />
-           </FormGroup>
-
-           {/* Campo Status */}
-           <FormGroup label='Status:' htmlFor='selectStatus'>
-             <select
-               className='form-select'
-               id='selectStatus'
-               name='status'
-               value={status}
-               onChange={(e) => setStatus(e.target.value)}
-             >
-               {statusQuarto.map((op) => (
-                 <option key={op.value} value={op.value}>
-                   {op.label}
-                 </option>
-               ))}
-             </select>
-           </FormGroup>
-
-
-           <Stack spacing={1} padding={1} direction='row'>
-             <button
-               onClick={salvar}
-               type='button'
-               className='btn btn-success'
-             >
-               Salvar
-             </button>
-             <button
-               onClick={() => navigate('/listagem-quartos')} 
-               type='button'
-               className='btn btn-danger'
-             >
-               Cancelar
-             </button>
-           </Stack>
-
-         </div>
-       </div>
-     </div>
-   </Card>
- </div>
- );
+              <Stack spacing={1} padding={1} direction="row">
+                <button
+                  onClick={salvar}
+                  type="button"
+                  className="btn btn-success"
+                >
+                  Salvar
+                </button>
+                <button
+                  onClick={() => navigate('/listagem-quartos')}
+                  type="button"
+                  className="btn btn-danger"
+                >
+                  Cancelar
+                </button>
+              </Stack>
+            </div>
+          </div>
+        </div>
+      </Card>
+    </div>
+  );
 }
 
 export default CadastroQuarto;
